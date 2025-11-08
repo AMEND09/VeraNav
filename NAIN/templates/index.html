@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>NAIN Multimodal Navigator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      --bg-gradient: linear-gradient(135deg, #080808 0%, #191b26 50%, #0d1018 100%);
+      --app-text: #f8fafc;
+      --app-muted-text: rgba(226, 232, 240, 0.66);
+      --app-strong-text: rgba(226, 232, 240, 0.92);
+      --status-dot-color: #22d3ee;
+      --main-bg: #05070f;
+      --stage-bg: #000;
+      --map-stage-bg: #05070f;
+      --placeholder-bg: rgba(3, 8, 20, 0.88);
+      --placeholder-text: rgba(226, 232, 240, 0.9);
+      --placeholder-code-bg: rgba(148, 163, 184, 0.22);
+      --preview-border: rgba(255, 255, 255, 0.2);
+      --control-bar-bg: rgba(12, 14, 20, 0.84);
+      --control-btn-bg: rgba(148, 163, 184, 0.15);
+      --control-btn-inactive: rgba(71, 85, 105, 0.4);
+      --control-icon-color: #f8fafc;
+      --control-btn-inactive-color: #94a3b8;
+      --control-hint-bg: rgba(17, 24, 39, 0.78);
+      --panel-tray-bg: rgba(2, 6, 16, 0.88);
+      --panel-bg: rgba(12, 17, 30, 0.78);
+      --panel-border: rgba(148, 163, 184, 0.18);
+      --panel-heading: rgba(148, 163, 184, 0.85);
+      --status-pill-bg: rgba(59, 130, 246, 0.12);
+      --status-pill-border: rgba(59, 130, 246, 0.25);
+      --status-pill-muted: rgba(226, 232, 240, 0.82);
+      --danger-pill-bg: rgba(248, 113, 113, 0.18);
+      --danger-pill-border: rgba(248, 113, 113, 0.32);
+      --footer-text: rgba(148, 163, 184, 0.7);
+      --app-shadow: 0 44px 120px rgba(0, 0, 0, 0.6);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg-gradient);
+      color: var(--app-text);
+      transition: background 0.4s ease, color 0.25s ease;
+    }
+
+    body[data-theme="light"] {
+      color-scheme: light;
+      --bg-gradient: linear-gradient(135deg, #eff6ff 0%, #e2e8f0 45%, #ffffff 100%);
+      --app-text: #0f172a;
+      --app-muted-text: rgba(71, 85, 105, 0.8);
+      --app-strong-text: rgba(30, 41, 59, 0.95);
+      --status-dot-color: #0ea5e9;
+      --main-bg: #f8fafc;
+      --stage-bg: #ffffff;
+      --map-stage-bg: #ffffff;
+      --placeholder-bg: rgba(226, 232, 240, 0.85);
+      --placeholder-text: rgba(30, 41, 59, 0.9);
+      --placeholder-code-bg: rgba(148, 163, 184, 0.3);
+      --preview-border: rgba(15, 23, 42, 0.18);
+      --control-bar-bg: rgba(248, 250, 252, 0.86);
+      --control-btn-bg: rgba(226, 232, 240, 0.9);
+      --control-btn-inactive: rgba(203, 213, 225, 0.7);
+      --control-icon-color: #0f172a;
+      --control-btn-inactive-color: rgba(100, 116, 139, 0.85);
+      --control-hint-bg: rgba(148, 163, 184, 0.35);
+      --panel-tray-bg: rgba(241, 245, 249, 0.9);
+      --panel-bg: rgba(255, 255, 255, 0.92);
+      --panel-border: rgba(203, 213, 225, 0.7);
+      --panel-heading: rgba(100, 116, 139, 0.95);
+      --status-pill-bg: rgba(37, 99, 235, 0.12);
+      --status-pill-border: rgba(37, 99, 235, 0.2);
+      --status-pill-muted: rgba(71, 85, 105, 0.8);
+      --danger-pill-bg: rgba(248, 113, 113, 0.12);
+      --danger-pill-border: rgba(248, 113, 113, 0.24);
+      --footer-text: rgba(100, 116, 139, 0.8);
+      --app-shadow: 0 28px 60px rgba(148, 163, 184, 0.35);
+    }
+
+    main {
+      width: min(420px, 94vw);
+      margin: clamp(20px, 6vh, 48px) auto;
+      border-radius: 52px;
+      overflow: hidden;
+      box-shadow: var(--app-shadow);
+      background: var(--main-bg);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      max-height: 848px;
+      transition: background 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px 8px;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--app-muted-text);
+    }
+
+    .status-pips {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .status-pips span::before {
+      content: "•";
+      margin-right: 6px;
+      color: var(--status-dot-color);
+    }
+
+    .theme-toggle {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 6px 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 0.72rem;
+      background: var(--control-btn-bg);
+      color: var(--control-icon-color);
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      border-color: rgba(148, 163, 184, 0.35);
+    }
+
+    .theme-toggle[aria-pressed="true"] {
+      background: var(--control-btn-inactive);
+      color: var(--control-btn-inactive-color);
+    }
+
+    .stage {
+      position: relative;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      background: var(--stage-bg);
+      transition: background 0.4s ease;
+    }
+
+    .map-stage {
+      position: relative;
+      background: var(--map-stage-bg);
+      min-height: 520px;
+      transition: background 0.4s ease;
+    }
+
+    .map-stage iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .map-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 32px;
+      gap: 14px;
+      text-align: center;
+      background: var(--placeholder-bg);
+      color: var(--placeholder-text);
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+      transition: background 0.4s ease, color 0.25s ease;
+    }
+
+    .map-placeholder code {
+      background: var(--placeholder-code-bg);
+      padding: 6px 10px;
+      border-radius: 9px;
+      color: var(--app-text);
+      font-size: 0.85rem;
+    }
+
+    .preview-wrapper {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .video-preview {
+      position: absolute;
+      width: 32.5%;
+      aspect-ratio: 9 / 16;
+      max-width: 130px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid var(--preview-border);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.6);
+      display: flex;
+      background: var(--stage-bg);
+      pointer-events: auto;
+      transition: border 0.3s ease, background 0.3s ease;
+    }
+
+    .video-preview video,
+    .video-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .video-preview .video-overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.72);
+      color: var(--app-text);
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+    }
+
+    body[data-theme="light"] .video-preview .video-overlay {
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .video-preview.paused .video-overlay {
+      display: flex;
+    }
+
+    .video-preview.top-left {
+      top: 18px;
+      left: 18px;
+    }
+
+    .video-preview.top-right {
+      top: 18px;
+      right: 18px;
+    }
+
+    .video-preview.bottom-right {
+      bottom: 18px;
+      right: 18px;
+    }
+
+    .video-preview.bottom-left {
+      bottom: 18px;
+      left: 18px;
+    }
+
+    .facetime-controls {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border-radius: 22px;
+      background: var(--control-bar-bg);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+      pointer-events: auto;
+      transition: background 0.3s ease;
+    }
+
+    .control-btn {
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--control-btn-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--control-icon-color);
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+
+    .control-btn img {
+      width: 22px;
+      height: 22px;
+      pointer-events: none;
+    }
+
+    .control-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .control-btn.inactive {
+      background: var(--control-btn-inactive);
+      color: var(--control-btn-inactive-color);
+    }
+
+    .control-btn.end {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .control-btn.end:hover {
+      background: #ef4444;
+    }
+
+    .control-hint {
+      position: absolute;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 12px;
+      border-radius: 16px;
+      background: var(--control-hint-bg);
+      color: var(--app-text);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.3s ease, background 0.3s ease, color 0.3s ease;
+    }
+
+    .panel-tray {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      padding: 16px 20px 24px;
+      background: var(--panel-tray-bg);
+      backdrop-filter: blur(12px);
+      transition: background 0.4s ease;
+    }
+
+    .panel {
+      border-radius: 18px;
+      padding: 16px 18px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      display: grid;
+      gap: 10px;
+      transition: background 0.4s ease, border 0.4s ease;
+    }
+
+    .panel h2 {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 0.78rem;
+      color: var(--panel-heading);
+    }
+
+    .panel p,
+    .panel li {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--app-strong-text);
+      line-height: 1.4;
+    }
+
+    ul.status-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .status-pill {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--status-pill-bg);
+      border: 1px solid var(--status-pill-border);
+      transition: background 0.3s ease, border 0.3s ease;
+    }
+
+    .status-pill.danger {
+      background: var(--danger-pill-bg);
+      border-color: var(--danger-pill-border);
+    }
+
+    .status-pill span:first-child {
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--app-strong-text);
+    }
+
+    .status-pill span:last-child {
+      font-size: 0.82rem;
+      color: var(--status-pill-muted);
+    }
+
+    .instructions-panel ol {
+      padding-left: 20px;
+      display: grid;
+      gap: 8px;
+      color: var(--app-strong-text);
+      font-size: 0.86rem;
+    }
+
+    footer {
+      text-align: center;
+      padding-bottom: 18px;
+      font-size: 0.76rem;
+      letter-spacing: 0.12em;
+      color: var(--footer-text);
+      text-transform: uppercase;
+      transition: color 0.3s ease;
+    }
+
+    @media (max-width: 460px) {
+      .status-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .status-pips {
+        justify-content: center;
+      }
+
+      .theme-toggle {
+        align-self: center;
+      }
+
+      .facetime-controls {
+        gap: 10px;
+        padding: 8px 10px;
+      }
+
+      .control-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .control-btn img {
+        width: 20px;
+        height: 20px;
+      }
+
+      .video-preview {
+        max-width: 118px;
+        border-radius: 16px;
+      }
+
+      .control-hint {
+        top: 68px;
+        font-size: 0.72rem;
+      }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <main>
+    <div class="status-bar">
+      <div class="status-pips">
+        <span>Live session</span>
+        <span>Secure connection</span>
+        <span>Navigation ready</span>
+      </div>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Toggle theme">Light mode</button>
+    </div>
+    <section class="stage">
+      <div class="map-stage">
+        <iframe id="navMap" title="Navigation map" allow="autoplay" data-map-src=""></iframe>
+        <div class="map-placeholder" id="mapPlaceholder">
+          <strong>Add navigation audio here</strong>
+          <span>Generate a Google Maps embed link and paste it into the iframe <code>data-map-src</code>.</span>
+        </div>
+        <div class="preview-wrapper">
+          <div class="video-preview bottom-right" id="videoPreview">
+            <img id="videoFeed" src="/video_feed" alt="YOLO camera feed">
+            <div class="video-overlay" id="cameraOverlay">Camera paused</div>
+          </div>
+        </div>
+        <div class="facetime-controls">
+          <button id="speakerToggle" class="control-btn" type="button" aria-pressed="true" aria-label="Toggle navigation audio" title="Navigation audio"><img src="/static/facetime-icons/volume.svg" alt="Volume"></button>
+          <button id="micToggle" class="control-btn" type="button" aria-pressed="false" aria-label="Toggle microphone" title="Toggle mic"><img id="micIcon" src="/static/facetime-icons/mic-off.svg" alt="Mic"></button>
+          <button id="cameraToggle" class="control-btn" type="button" aria-pressed="true" aria-label="Toggle camera" title="Toggle camera"><img id="cameraIcon" src="/static/facetime-icons/camera-on.svg" alt="Camera"></button>
+          <button id="movePreview" class="control-btn" type="button" aria-label="Move preview" title="Move preview"><img src="/static/facetime-icons/navigation.svg" alt="Move"></button>
+          <button id="endSession" class="control-btn end" type="button" aria-pressed="false" aria-label="End session" title="End session"><img src="/static/facetime-icons/end-call.svg" alt="End"></button>
+        </div>
+        <div class="control-hint" id="controlHint">Tap controls to manage your session</div>
+      </div>
+      <div class="panel-tray">
+        <section class="panel detection-panel">
+          <h2>Object alerts</h2>
+          <p id="status">Waiting for camera...</p>
+          <ul class="status-list" id="detectionList"></ul>
+        </section>
+        <section class="panel audio-panel">
+          <h2>Sound hazards</h2>
+          <p class="audio-status" id="audioStatus">Microphone muted. Tap the mic button to start listening.</p>
+          <ul class="status-list" id="audioDetections"></ul>
+        </section>
+        <section class="panel instructions-panel">
+          <h2>Quick tips</h2>
+          <ol>
+            <li>Use the floating control bar just like FaceTime to mute, pause video, or reposition the preview.</li>
+            <li>Keep your map audio on so turn-by-turn instructions mix with hazard warnings.</li>
+            <li>If permissions glitch, toggle the mic or camera buttons off and back on to reinitialize.</li>
+            <li>Rotate your phone to portrait for the full FaceTime layout with one-hand control.</li>
+          </ol>
+        </section>
+      </div>
+    </section>
+    <footer>Stay aware: combine the map, live preview, and hazard cues to navigate confidently.</footer>
+  </main>
+
+  <script type="module">
+    const VIDEO_STREAM_URL = '/video_feed';
+    const statusEl = document.getElementById('status');
+    const detectionList = document.getElementById('detectionList');
+    const audioStatus = document.getElementById('audioStatus');
+    const audioDetections = document.getElementById('audioDetections');
+    const mapFrame = document.getElementById('navMap');
+    const mapPlaceholder = document.getElementById('mapPlaceholder');
+    const videoFeed = document.getElementById('videoFeed');
+    const videoPreview = document.getElementById('videoPreview');
+    const cameraOverlay = document.getElementById('cameraOverlay');
+    const controlHint = document.getElementById('controlHint');
+    const speakerToggleBtn = document.getElementById('speakerToggle');
+    const cameraToggleBtn = document.getElementById('cameraToggle');
+    const micToggleBtn = document.getElementById('micToggle');
+    const movePreviewBtn = document.getElementById('movePreview');
+    const endSessionBtn = document.getElementById('endSession');
+    const micIcon = document.getElementById('micIcon');
+    const cameraIcon = document.getElementById('cameraIcon');
+    const themeToggleBtn = document.getElementById('themeToggle');
+
+    const THEME_STORAGE_KEY = 'nainTheme';
+    const AUDIO_TASKS_VERSION = '0.10.0';
+    const YAMNET_MODEL_PATH = '/static/vendor/yamnet.tflite';
+    const TARGET_SAMPLE_RATE = 16000;
+  const AUDIO_DEBUG = false;
+
+    const DANGEROUS_LABEL_LIST = [
+      'Car crash',
+      'Skidding',
+      'Tire squeal',
+      'Siren',
+      'Police car (siren)',
+      'Ambulance (siren)',
+      'Fire engine, fire truck (siren)',
+      'Emergency vehicle (siren)',
+      'Screaming',
+      'Gunshot, gunfire',
+      'Explosion',
+      'Glass breaking',
+      'Car alarm',
+      'Air horn, truck horn',
+      'Car horn, honking',
+      'Engine knocking'
+    ];
+
+    const DANGEROUS_LABELS = new Set(DANGEROUS_LABEL_LIST);
+    const NORMALIZED_DANGEROUS_LABELS = new Set(DANGEROUS_LABEL_LIST.map((label) => normalizeLabel(label)));
+
+    const HAZARD_COOLDOWN_MS = 5000;
+    const HAZARD_THRESHOLD = 0.35;
+    const lastHazardAnnouncements = new Map();
+
+    const previewPositions = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
+    let currentPreviewIndex = 2;
+    let cameraActive = true;
+    let audioMonitoringActive = false;
+    let speakerActive = true;
+    let controlHintTimeout = null;
+
+    let audioTasksModulePromise = null;
+    let audioClassifierPromise = null;
+    let audioClassifier = null;
+
+  let audioCtx = null;
+  let microphoneStream = null;
+  let sourceNode = null;
+  let processorNode = null;
+  let silentGainNode = null;
+  let audioBuffer = new Float32Array(0);
+  let processingChunk = false;
+
+    function setButtonState(button, active) {
+      button.classList.toggle('inactive', !active);
+      button.setAttribute('aria-pressed', String(active));
+      if (button === micToggleBtn && micIcon) {
+        micIcon.src = active ? '/static/facetime-icons/mic-on.svg' : '/static/facetime-icons/mic-off.svg';
+      }
+      if (button === cameraToggleBtn && cameraIcon) {
+        cameraIcon.src = active ? '/static/facetime-icons/camera-on.svg' : '/static/facetime-icons/camera-off.svg';
+      }
+    }
+
+    function setTheme(theme, persist = false) {
+      const targetTheme = theme === 'light' ? 'light' : 'dark';
+      document.body.dataset.theme = targetTheme;
+      if (themeToggleBtn) {
+        themeToggleBtn.textContent = targetTheme === 'light' ? 'Dark mode' : 'Light mode';
+        themeToggleBtn.setAttribute('aria-pressed', String(targetTheme === 'light'));
+      }
+      if (persist) {
+        try {
+          window.localStorage.setItem(THEME_STORAGE_KEY, targetTheme);
+        } catch (error) {
+          /* ignore storage failures */
+        }
+      }
+    }
+
+    function initTheme() {
+      let storedTheme = null;
+      try {
+        storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+      } catch (error) {
+        storedTheme = null;
+      }
+
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+      setTheme(initialTheme);
+
+      if (!storedTheme) {
+        try {
+          window.localStorage.setItem(THEME_STORAGE_KEY, initialTheme);
+        } catch (error) {
+          /* ignore storage failures */
+        }
+      }
+
+      if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+          const currentTheme = document.body.dataset.theme === 'light' ? 'light' : 'dark';
+          const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+          setTheme(nextTheme, true);
+          showControlHint(nextTheme === 'light' ? 'Light mode on' : 'Dark mode on', 1800);
+        });
+      }
+    }
+
+    function showControlHint(message, duration = 2000) {
+      if (!controlHint) {
+        return;
+      }
+      controlHint.textContent = message;
+      controlHint.style.opacity = 1;
+      if (controlHintTimeout) {
+        clearTimeout(controlHintTimeout);
+      }
+      controlHintTimeout = window.setTimeout(() => {
+        controlHint.style.opacity = 0;
+      }, duration);
+    }
+
+    function ensureMapLoaded() {
+      const mapSrc = mapFrame.dataset.mapSrc ? mapFrame.dataset.mapSrc.trim() : '';
+      if (mapSrc) {
+        mapFrame.src = mapSrc;
+        if (mapPlaceholder) {
+          mapPlaceholder.style.display = 'none';
+        }
+      }
+    }
+
+    function updatePreviewPosition() {
+      previewPositions.forEach((pos) => videoPreview.classList.remove(pos));
+      videoPreview.classList.add(previewPositions[currentPreviewIndex]);
+    }
+
+    function setCameraActive(active) {
+      cameraActive = active;
+      if (active) {
+        videoFeed.src = `${VIDEO_STREAM_URL}?v=${Date.now()}`;
+        videoPreview.classList.remove('paused');
+      } else {
+        videoFeed.src = '';
+        videoPreview.classList.add('paused');
+      }
+      cameraOverlay.textContent = active ? '' : 'Camera paused';
+      setButtonState(cameraToggleBtn, active);
+    }
+
+    function concatFloat32(a, b) {
+      const result = new Float32Array(a.length + b.length);
+      result.set(a, 0);
+      result.set(b, a.length);
+      return result;
+    }
+
+    function loadAudioTasksModule() {
+      if (!audioTasksModulePromise) {
+        audioTasksModulePromise = import(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-audio@${AUDIO_TASKS_VERSION}`)
+          .catch((error) => {
+            audioTasksModulePromise = null;
+            throw error;
+          });
+      }
+      return audioTasksModulePromise;
+    }
+
+    function resampleAudio(data, sourceRate, targetRate) {
+      if (sourceRate === targetRate) {
+        return data;
+      }
+      const ratio = sourceRate / targetRate;
+      const newLength = Math.round(data.length / ratio);
+      const resampled = new Float32Array(newLength);
+      for (let i = 0; i < newLength; i += 1) {
+        const rawIndex = i * ratio;
+        const indexFloor = Math.floor(rawIndex);
+        const indexCeil = Math.min(data.length - 1, indexFloor + 1);
+        const weight = rawIndex - indexFloor;
+        resampled[i] = data[indexFloor] + weight * (data[indexCeil] - data[indexFloor]);
+      }
+      return resampled;
+    }
+
+    function speak(text) {
+      if (!speakerActive || !('speechSynthesis' in window)) {
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function renderHazards(hazards) {
+      audioDetections.innerHTML = '';
+      if (hazards.length === 0) {
+        return;
+      }
+      hazards.forEach((hazard) => {
+  const li = document.createElement('li');
+  li.className = 'status-pill danger';
+  const label = document.createElement('span');
+  label.textContent = hazard.className || hazard.normalizedClassName || 'Unknown hazard';
+
+        const meta = document.createElement('span');
+        meta.textContent = `${Math.round(hazard.probability * 100)}%`;
+
+        li.appendChild(label);
+        li.appendChild(meta);
+        audioDetections.appendChild(li);
+      });
+    }
+
+    function handleAudioPredictions(predictions) {
+      if (!Array.isArray(predictions)) {
+        return;
+      }
+      const hazards = predictions
+        .filter((item) => isDangerousLabel(item.className) && item.probability >= HAZARD_THRESHOLD)
+        .sort((a, b) => b.probability - a.probability)
+        .slice(0, 3);
+
+      if (hazards.length === 0) {
+        if (AUDIO_DEBUG && predictions.length > 0) {
+          console.debug('No hazards detected. Top sounds:', predictions.slice(0, 3));
+        }
+        audioStatus.textContent = 'Listening for hazards... No dangerous sounds detected.';
+        audioDetections.innerHTML = '';
+        lastHazardAnnouncements.clear();
+        return;
+      }
+
+      audioStatus.textContent = 'Warning: dangerous sound detected.';
+      renderHazards(hazards);
+
+      const now = Date.now();
+      hazards.forEach((hazard) => {
+        const hazardKey = hazard.normalizedClassName || hazard.className;
+        const lastAnnounced = lastHazardAnnouncements.get(hazardKey) || 0;
+        if (now - lastAnnounced > HAZARD_COOLDOWN_MS) {
+          const spokenLabel = hazard.className || hazard.normalizedClassName || 'danger';
+          speak(`${spokenLabel} detected nearby`);
+          lastHazardAnnouncements.set(hazardKey, now);
+        }
+      });
+    }
+
+    function normalizeLabel(label) {
+      return (label || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    }
+
+    function isDangerousLabel(label) {
+      if (!label) {
+        return false;
+      }
+      if (DANGEROUS_LABELS.has(label)) {
+        return true;
+      }
+      return NORMALIZED_DANGEROUS_LABELS.has(normalizeLabel(label));
+    }
+
+    async function ensureAudioClassifier() {
+      if (audioClassifier) {
+        return audioClassifier;
+      }
+      if (!audioClassifierPromise) {
+        audioClassifierPromise = (async () => {
+          const moduleNamespace = await loadAudioTasksModule();
+          const taskApi = moduleNamespace.AudioClassifier ? moduleNamespace : moduleNamespace.default;
+          if (!taskApi || !taskApi.AudioClassifier || !taskApi.FilesetResolver) {
+            throw new Error('MediaPipe audio tasks module unavailable');
+          }
+          const fileset = await taskApi.FilesetResolver.forAudioTasks(
+            `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-audio@${AUDIO_TASKS_VERSION}/wasm`
+          );
+          const classifier = await taskApi.AudioClassifier.createFromOptions(fileset, {
+            baseOptions: { modelAssetPath: YAMNET_MODEL_PATH },
+            runningMode: 'AUDIO_STREAM',
+          });
+          audioClassifier = classifier;
+          return classifier;
+        })().catch((error) => {
+          audioClassifierPromise = null;
+          throw error;
+        });
+      }
+      return audioClassifierPromise;
+    }
+
+    function extractCategoriesFromResult(result) {
+      if (!result) {
+        return [];
+      }
+      const groups = [];
+      const pushGroups = (entry) => {
+        if (!entry) {
+          return;
+        }
+        if (Array.isArray(entry.classifications)) {
+          groups.push(...entry.classifications);
+        }
+        if (entry.classificationResult && Array.isArray(entry.classificationResult.classifications)) {
+          groups.push(...entry.classificationResult.classifications);
+        }
+      };
+      if (Array.isArray(result)) {
+        result.forEach((item) => pushGroups(item));
+      } else {
+        pushGroups(result);
+      }
+      if (groups.length === 0) {
+        return [];
+      }
+      return groups.flatMap((group) => (Array.isArray(group.categories) ? group.categories : []));
+    }
+
+    async function startAudioMonitoring() {
+      if (audioMonitoringActive) {
+        return;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        audioStatus.textContent = 'Microphone access not supported in this browser.';
+        showControlHint('Browser does not support mic', 2200);
+        return;
+      }
+      try {
+        audioStatus.textContent = 'Requesting microphone access...';
+        const micRequest = navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const classifierPromise = ensureAudioClassifier();
+
+        microphoneStream = await micRequest;
+    audioStatus.textContent = 'Loading hazard model...';
+    audioClassifier = await classifierPromise;
+
+        if (!audioCtx) {
+          const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextCtor();
+          if (audioCtx.sampleRate !== TARGET_SAMPLE_RATE) {
+            console.warn(`Browser sample rate ${audioCtx.sampleRate}Hz differs from target ${TARGET_SAMPLE_RATE}Hz. Samples will be resampled in software.`);
+          }
+        } else if (audioCtx.state === 'closed') {
+          const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextCtor();
+        }
+        if (audioCtx.sampleRate !== TARGET_SAMPLE_RATE) {
+          console.debug(`Resampling audio from ${audioCtx.sampleRate}Hz to ${TARGET_SAMPLE_RATE}Hz before classification.`);
+        }
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+
+        sourceNode = audioCtx.createMediaStreamSource(microphoneStream);
+        processorNode = audioCtx.createScriptProcessor(4096, 1, 1);
+        silentGainNode = audioCtx.createGain();
+        silentGainNode.gain.value = 0;
+
+        audioBuffer = new Float32Array(0);
+        processingChunk = false;
+        audioMonitoringActive = true;
+
+        processorNode.onaudioprocess = (event) => {
+          if (!audioMonitoringActive || !audioClassifier) {
+            return;
+          }
+          const input = event.inputBuffer.getChannelData(0);
+          const copied = new Float32Array(input.length);
+          copied.set(input);
+          audioBuffer = concatFloat32(audioBuffer, copied);
+
+          const samplesPerChunk = Math.round(audioCtx.sampleRate);
+          if (!processingChunk && audioBuffer.length >= samplesPerChunk) {
+            const chunk = audioBuffer.slice(0, samplesPerChunk);
+            audioBuffer = audioBuffer.slice(samplesPerChunk);
+            processingChunk = true;
+
+            (async () => {
+              try {
+                const resampled = resampleAudio(chunk, audioCtx.sampleRate, TARGET_SAMPLE_RATE);
+                const classifier = audioClassifier;
+                if (!classifier) {
+                  return;
+                }
+                const results = await classifier.classify(resampled, TARGET_SAMPLE_RATE);
+                if (!audioMonitoringActive) {
+                  return;
+                }
+                if (AUDIO_DEBUG) {
+                  console.debug('Audio classify raw results', results);
+                }
+                const categories = extractCategoriesFromResult(results);
+                const predictions = categories.map((category) => {
+                  const rawName = category.displayName || category.categoryName || '';
+                  return {
+                    className: rawName,
+                    normalizedClassName: normalizeLabel(rawName),
+                    probability: category.score,
+                  };
+                });
+                if (AUDIO_DEBUG) {
+                  console.debug('Audio predictions', predictions.slice(0, 5));
+                }
+                handleAudioPredictions(predictions);
+              } catch (error) {
+                console.error('Audio classification error', error);
+                audioStatus.textContent = 'Audio classification error; retrying...';
+              } finally {
+                processingChunk = false;
+              }
+            })();
+          }
+        };
+
+        sourceNode.connect(processorNode);
+        processorNode.connect(silentGainNode);
+        silentGainNode.connect(audioCtx.destination);
+
+        audioStatus.textContent = 'Listening for hazards...';
+        setButtonState(micToggleBtn, true);
+      } catch (error) {
+        audioMonitoringActive = false;
+        console.error('Failed to start audio monitoring', error);
+        const denied = error && (error.name === 'NotAllowedError' || error.name === 'SecurityError');
+        const modelLoad = error && typeof error.message === 'string' && (error.message.includes('AudioClassifier') || error.message.includes('module'));
+        audioStatus.textContent = denied
+          ? 'Microphone permission denied. Allow access and tap Mic on to try again.'
+          : modelLoad
+            ? 'Hazard model failed to load. Check your connection and reload.'
+            : 'Microphone unavailable. Check your device input and retry.';
+        setButtonState(micToggleBtn, false);
+      }
+    }
+
+    function stopAudioMonitoring() {
+      audioMonitoringActive = false;
+      if (processorNode) {
+        processorNode.disconnect();
+        processorNode.onaudioprocess = null;
+        processorNode = null;
+      }
+      if (sourceNode) {
+        sourceNode.disconnect();
+        sourceNode = null;
+      }
+      if (silentGainNode) {
+        silentGainNode.disconnect();
+        silentGainNode = null;
+      }
+      if (microphoneStream) {
+        microphoneStream.getTracks().forEach((track) => track.stop());
+        microphoneStream = null;
+      }
+      if (audioClassifier && typeof audioClassifier.reset === 'function') {
+        audioClassifier.reset();
+      }
+      audioBuffer = new Float32Array(0);
+      processingChunk = false;
+      audioDetections.innerHTML = '';
+      lastHazardAnnouncements.clear();
+      audioStatus.textContent = 'Microphone muted. Tap Mic on to start listening.';
+      setButtonState(micToggleBtn, false);
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    async function pollDetections() {
+      try {
+        const response = await fetch('/latest_detections', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        const detections = Array.isArray(data.detections) ? data.detections : [];
+
+        detectionList.innerHTML = '';
+
+        if (detections.length === 0) {
+          statusEl.textContent = 'No objects detected right now.';
+        } else {
+          statusEl.textContent = '';
+          detections.forEach((detection) => {
+            const li = document.createElement('li');
+            li.className = 'status-pill';
+            if (detection.is_close) {
+              li.classList.add('danger');
+            }
+
+            const label = document.createElement('span');
+            label.textContent = detection.label || 'Unknown';
+
+            const meta = document.createElement('span');
+            const distance = detection.distance_cm !== null && detection.distance_cm !== undefined
+              ? `${Number(detection.distance_cm).toFixed(0)} cm`
+              : 'Distance unknown';
+            const confidence = detection.confidence !== null && detection.confidence !== undefined
+              ? `${Math.round(Number(detection.confidence) * 100)}%`
+              : '';
+            meta.textContent = confidence ? `${distance} • ${confidence}` : distance;
+
+            li.appendChild(label);
+            li.appendChild(meta);
+            detectionList.appendChild(li);
+          });
+        }
+      } catch (error) {
+        statusEl.textContent = 'Attempting to reconnect to the detector...';
+      } finally {
+        window.setTimeout(pollDetections, 600);
+      }
+    }
+
+    speakerToggleBtn.addEventListener('click', () => {
+      speakerActive = !speakerActive;
+      speakerToggleBtn.classList.toggle('inactive', !speakerActive);
+      speakerToggleBtn.setAttribute('aria-pressed', String(speakerActive));
+      if (!speakerActive && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      showControlHint(speakerActive ? 'Navigation audio enabled' : 'Navigation audio muted');
+    });
+
+    cameraToggleBtn.addEventListener('click', () => {
+      setCameraActive(!cameraActive);
+      showControlHint(cameraActive ? 'Camera resumed' : 'Camera paused');
+    });
+
+    micToggleBtn.addEventListener('click', async () => {
+      if (audioMonitoringActive) {
+        stopAudioMonitoring();
+        showControlHint('Mic muted');
+      } else {
+        await startAudioMonitoring();
+        showControlHint(audioMonitoringActive ? 'Mic listening for hazards' : 'Mic permissions required');
+      }
+    });
+
+    movePreviewBtn.addEventListener('click', () => {
+      currentPreviewIndex = (currentPreviewIndex + 1) % previewPositions.length;
+      updatePreviewPosition();
+      showControlHint('Preview moved', 1600);
+    });
+
+    endSessionBtn.addEventListener('click', () => {
+      setCameraActive(false);
+      if (audioMonitoringActive) {
+        stopAudioMonitoring();
+      }
+      speakerActive = false;
+      speakerToggleBtn.classList.add('inactive');
+      speakerToggleBtn.setAttribute('aria-pressed', 'false');
+      showControlHint('Session ended', 2200);
+    });
+
+  initTheme();
+  ensureMapLoaded();
+    updatePreviewPosition();
+    setCameraActive(true);
+    pollDetections();
+    window.setTimeout(() => {
+      if (controlHint) {
+        controlHint.style.opacity = 0;
+      }
+    }, 2600);
+  </script>
+</body>
+</html>

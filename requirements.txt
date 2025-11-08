@@ -1,0 +1,15 @@
+# Python dependencies for local Whisper server
+flask==3.0.0
+flask-cors==4.0.0
+openai-whisper==20231117
+
+# Audio processing dependencies
+ffmpeg-python==0.2.0
+numpy==1.24.3
+torch==2.1.0
+torchaudio==2.1.0
+
+# YOLOv8 object detection
+ultralytics==8.0.196
+opencv-python==4.8.1.78
+pillow==10.1.0

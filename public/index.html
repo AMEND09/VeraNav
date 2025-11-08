@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vera Navigator - AI-Powered Navigation Assistant</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container" role="main">
+        <header>
+            <h1><i class="fas fa-walking"></i> Vera Navigator</h1>
+            <p>AI-Powered Navigation Assistant for the Visually Impaired</p>
+            <div id="service-status" class="service-status">
+                <span class="status-item"><i class="fas fa-circle" id="yolo-status"></i> YOLO</span>
+                <span class="status-item"><i class="fas fa-circle" id="map-status"></i> Map</span>
+                <span class="status-item"><i class="fas fa-circle" id="audio-status"></i> Audio</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- Home Screen -->
+            <section id="home-screen" class="screen active">
+                <div class="top-half">
+                    <div id="recording-indicator" class="recording-indicator hidden">
+                        <i class="fas fa-microphone-alt-slash"></i>
+                        <span>Listening...</span>
+                    </div>
+                    
+                    <div id="transcript-display" class="transcript-display hidden" aria-live="polite">
+                        <p>You said: <span id="transcript-text"></span></p>
+                    </div>
+
+                    <div class="destination-input-container">
+                        <label for="destination-input">Or enter your destination:</label>
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                id="destination-input" 
+                                placeholder="Where would you like to go?"
+                                aria-label="Enter destination"
+                            >
+                            <button id="navigate-btn" class="primary-btn">
+                                <i class="fas fa-route"></i>
+                                Navigate
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="voice-response" class="voice-response hidden" aria-live="polite">
+                        <p><i class="fas fa-volume-up"></i> <span id="response-text"></span></p>
+                    </div>
+                </div>
+                
+                <div class="bottom-half">
+                    <button id="start-speech-btn" class="fullscreen-mic-btn" aria-label="Tap bottom half of screen to speak">
+                        <i class="fas fa-microphone"></i>
+                        <span>Tap to Speak</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Navigation Screen -->
+            <section id="navigation-screen" class="screen hidden">
+                <div class="nav-top-half">
+                    <div class="navigation-header">
+                        <h2>Navigating to <span id="nav-destination"></span></h2>
+                        <div class="nav-header-controls">
+                            <button id="end-navigation-btn" class="secondary-btn">
+                                <i class="fas fa-times"></i>
+                                End Navigation
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="nav-recording-indicator" class="recording-indicator hidden">
+                        <i class="fas fa-microphone-alt-slash"></i>
+                        <span>Listening...</span>
+                    </div>
+                    
+                    <div id="nav-transcript-display" class="transcript-display hidden" aria-live="polite">
+                        <p>You said: <span id="nav-transcript-text"></span></p>
+                    </div>
+
+                <!-- Interactive Map Display -->
+                <div class="map-container">
+                    <div id="map" class="map-display"></div>
+                    <button id="toggle-map-btn" class="toggle-view-btn" aria-label="Toggle map view">
+                        <i class="fas fa-map"></i>
+                        <span>Show Map</span>
+                    </button>
+                </div>
+
+                <!-- YOLO Camera Preview -->
+                <div class="camera-container">
+                    <div id="camera-preview" class="camera-preview hidden">
+                        <video id="detection-video" autoplay playsinline></video>
+                        <canvas id="detection-canvas"></canvas>
+                    </div>
+                    <button id="toggle-camera-btn" class="toggle-view-btn" aria-label="Toggle camera view">
+                        <i class="fas fa-video"></i>
+                        <span>Show Camera</span>
+                    </button>
+                </div>
+
+                <div id="obstacles-alert" class="alert hidden" role="alert" aria-live="polite">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Obstacles Detected</h3>
+                    <ul id="obstacles-list"></ul>
+                    <p>Please proceed with caution</p>
+                </div>
+
+                <div id="sounds-alert" class="alert hidden" role="alert" aria-live="polite">
+                    <h3><i class="fas fa-exclamation-circle"></i> Dangerous Sounds</h3>
+                    <p id="sounds-list"></p>
+                    <p>Be extra cautious</p>
+                </div>
+
+                <div class="current-step">
+                    <h3>Current Instruction</h3>
+                    <p id="current-instruction" class="instruction-text">Getting instructions...</p>
+                    
+                    <p id="distance-display" class="distance hidden">Distance to next: ~<span id="distance-value"></span> meters</p>
+                </div>
+
+                <div class="step-progress">
+                    <p>Step <span id="current-step-num">1</span> of <span id="total-steps">1</span></p>
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="navigation-controls">
+                    <button id="prev-step-btn" class="nav-btn prev-btn" disabled>
+                        <i class="fas fa-arrow-left"></i>
+                        Previous
+                    </button>
+                    <button id="next-step-btn" class="nav-btn next-btn">
+                        <i class="fas fa-arrow-right"></i>
+                        Next Step
+                    </button>
+                </div>
+
+                <div id="safety-notes" class="safety-notes hidden">
+                    <h3>Safety Information</h3>
+                    <p id="safety-text"></p>
+                </div>
+                </div>
+                
+                <div class="nav-bottom-half">
+                    <button id="nav-voice-btn" class="fullscreen-mic-btn" aria-label="Tap bottom half to speak">
+                        <i class="fas fa-microphone"></i>
+                        <span>Tap to Speak</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Leaflet JS for maps -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- MediaPipe Audio Tasks for YAMNet sound classification -->
+    <script type="module">
+        import audio from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-audio@0.10.0";
+        window.AudioTasks = audio;
+    </script>
+    
+    <script src="js/main.js"></script>
+</body>
+</html>

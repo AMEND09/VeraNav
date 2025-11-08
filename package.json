@@ -1,0 +1,50 @@
+{
+  "name": "vera-navigator",
+  "version": "1.0.0",
+  "description": "AI-powered navigation assistant for the visually impaired",
+  "main": "src/backend/server.js",
+  "scripts": {
+    "start": "node src/backend/server.js",
+    "server": "nodemon src/backend/server.js",
+    "whisper": "python313 whisper_server.py",
+    "yolo": "python313 yolo_detection_service.py",
+    "dev": "concurrently \"npm run whisper\" \"npm run yolo\" \"npm run server\"",
+    "dev:node-only": "nodemon src/backend/server.js",
+    "services": "concurrently \"npm run whisper\" \"npm run yolo\"",
+    "install:python": "python313 -m pip install -r requirements.txt",
+    "check": "python check_setup.py"
+  },
+  "keywords": [
+    "navigation",
+    "accessibility",
+    "ai",
+    "visually-impaired"
+  ],
+  "author": "Vera Navigator Team",
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^0.8.0",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.2.1",
+    "form-data": "^4.0.4",
+    "geolib": "^3.3.4",
+    "helmet": "^8.1.0",
+    "multer": "^2.0.2",
+    "openai": "^6.8.1",
+    "osmtogeojson": "^3.0.0-beta.4"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/vera-navigator.git"
+  }
+}
